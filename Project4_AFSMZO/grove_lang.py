@@ -115,7 +115,6 @@ class Name(Expression): #TODO check if this is right -we made this
     def __eq__(self, other: Any) -> bool:
         return (isinstance(other, Name) and other.name == self.name)
     @staticmethod
-    @staticmethod
     def parse(tokens: list[str]) -> Name:
         # 0. ensure there is exactly one token
         if len(tokens) != 1:
