@@ -6,8 +6,8 @@ if __name__ == "__main__":
     print("Welcome to the Grove REPL!")
     print("Enter your commands or ':done' to exit")
     while True:
-        s: str = input('> ')
-        if s.strip() == ':done': break
+        s: str = input('Grove >> ')
+        if s.strip() == 'quit' or s.strip() == 'quit': Terminate
         try:
             x = Command.parse(s).eval()
             if x is not None: print(x)
@@ -17,4 +17,3 @@ if __name__ == "__main__":
         except GroveEvalError as e:
             print(f"Error Evaluating {s}")
             print(e)
-    print("Goodbye and thank you for using Grove!")

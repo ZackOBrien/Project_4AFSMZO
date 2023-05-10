@@ -88,8 +88,6 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
         #1. ensure that all chars in that token are letters
         if not tokens[0].isalpha():
             raise GroveParseError("Nubers can contain only digits")
-        if not tokens[0] == "-":
-            raise GroveParseError("Nubers have to be positive")
         return Number(int(tokens[0]))
 
 class Object(Expression):
@@ -174,8 +172,21 @@ class Name(Expression): #TODO check if this is right -we made this
 
 
 class Assignment(Expression):
-	# TODO: Implement node for "set" statements
-	pass
+    def __init__(self, name: Name, value: Expression):
+        self.name = name
+        self.value = value
+    def eval(self) -> bool:
+        context[self.name.name] = self.value.eval()
+    def __eq__(self, other: Any):
+        return (
+            isinstance(other, Assignment)
+            and self.name == other.name
+            and self.value == other.value
+        )
+    @staticmethod
+    def parse(tokens: list[str]) -> Assignment:
+        pass #TODO 
+    
 
 class Import(Expression):
     # TODO: Implement node for "import" statements
@@ -183,4 +194,5 @@ class Import(Expression):
 
 class Terminate(Expression):
 	# TODO: Implement node for "quit" and "exit" statements
-	pass
+    print("Goodbye and thank you for using Grove!")
+    sys.exit() 
