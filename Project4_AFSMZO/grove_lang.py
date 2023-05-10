@@ -144,11 +144,24 @@ class Object(Expression):
         #0. ensure that the first token is "new"
         if tokens[0] != "new":
             raise GroveParseError("Object must begin with 'new'")
-        #1. ensure there is at least two tokens
-        if len(tokens) < 2:
-            raise GroveParseError("Object must have at least two tokens")   
-    #TODO SEan see what parsing to do
-    pass
+        #1. ensure that the second token is a Name
+        try:
+            name: Name = Name.parse([tokens[1]])
+        except GroveParseError:
+            raise GroveParseError("Object must have a Name after 'new'")
+        #2. optionally check that every token after the second is a . followed by a Name
+        for i in range(2, tokens.__len__):
+            if tokens[i] != ".":
+                raise GroveParseError("Object must have a '.' after the Name")
+            # Check that all tokens have been consumed
+            if len(tokens) != i + 1:
+                raise GroveParseError("Unexpected tokens after object name")
+            try:
+                name: Name = Name.parse([tokens[i+1]])
+            except GroveParseError:
+                raise GroveParseError("Object must have a Name after the '.'")
+        # return the object
+        return Object(name)
     
 class Call(Expression):
     def __init__(self, call: Expression):
