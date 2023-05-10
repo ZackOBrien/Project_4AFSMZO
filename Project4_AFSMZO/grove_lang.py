@@ -348,6 +348,19 @@ class Import(Expression):
         return Import(name)
 
 class Terminate(Expression):
-	# TODO: Implement node for "quit" and "exit" statements
-    print("Goodbye and thank you for using Grove!")
-    sys.exit() 
+    # TODO: Implement node for "quit" and "exit" statements
+    def __init__(self, keyword: str):
+        self.keyword = keyword
+    def eval(self) -> None:
+        sys.exit()
+    def __eq__(self, other: Any):
+        return (
+            isinstance(other, Terminate)
+            and self.keyword == other.keyword
+        )
+    @staticmethod
+    def parse(tokens: list[str]) -> Terminate:
+        #0. ensure that the first token is "quit" or "exit"
+        if tokens[0] != "quit" and tokens[0] != "exit":
+            raise GroveParseError("Terminate must begin with 'quit' or 'exit'")
+        return Terminate(tokens[0])
