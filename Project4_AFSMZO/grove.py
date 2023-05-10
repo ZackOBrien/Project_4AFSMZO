@@ -7,7 +7,7 @@ if __name__ == "__main__":
     print("Enter your commands or ':done' to exit")
     while True:
         s: str = input('Grove >> ')
-        if s.strip() == 'quit' or s.strip() == 'quit': Terminate
+        if s.strip() == 'quit' or s.strip() == 'exit': Terminate.parse(['quit']).eval()
         try:
             x = Command.parse(s).eval()
             if x is not None: print(x)
