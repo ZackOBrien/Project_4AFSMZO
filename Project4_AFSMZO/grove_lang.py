@@ -101,8 +101,53 @@ class Call(Expression):
     pass
         
 class Addition(Expression):
-    # TODO: Implement node for "+"
-    pass
+    def __init__(self, first: Expression, second: Expression):
+        self.first = first
+        self.second = second
+    def eval(self) -> int:
+        first_val = self.first.eval()
+        second_val = self.second.eval()
+        if isinstance(first_val, int) and isinstance(second_val, int):
+            return first_val + second_val
+        elif isinstance(first_val, str) and isinstance(second_val, str):
+            return first_val + second_val
+        else:
+            raise GroveEvalError("Addition is only defined for two integers or two strings")
+    def __eq__(self, other) -> bool:
+        return (isinstance(other, Addition) and 
+                other.first == self.first and 
+                other.second == self.second)
+    @staticmethod
+    def parse(tokens: list[str]) -> Addition:
+        """Factory method for creating Add expressions from tokens"""
+        s = ' '.join(tokens)
+        # check to see if this string matches the pattern for add
+        # 0. ensure there are enough tokens for this to be a add expression
+        if len(tokens) < 7:
+            raise GroveParseError(f"Not enough tokens for Add in: {s}")
+        # 1. ensure the first two tokens are + and (
+        if tokens[0] != '+' or tokens[1] != '(':
+            raise GroveParseError(f"Add must begin with '+ (' in {s}")
+        # 2. ensure there is an expression inside that open parentheses
+        try:
+            cut = Expression.match_parens(tokens[1:])+1
+            first: Expression = Expression.parse(tokens[2:cut])
+        except GroveParseError:
+            raise GroveParseError(f"Unable to parse first addend in: {s}")
+        # 3. ensure there are enough tokens left after the first expression
+        tokens = tokens[cut+1:]
+        if len(tokens) < 3:
+            raise GroveParseError(f"Not enough tokens left for Add in: {s}")
+        # 4. ensure the first and last of the remaining tokens are ( and )
+        if tokens[0] != '(' or tokens[-1] != ')':
+            raise GroveParseError(f"Addends must be wrapped in ( ): {s}")
+        # 5. ensure the tokens between these are a valid expression
+        try:
+            second: Expression = Expression.parse(tokens[1:-1])
+        except GroveParseError:
+            raise GroveParseError(f"Unable to parse second addend in: {s}")
+        # if this point is reached, this is a valid Add expression
+        return Addition(first, second)
 
 class Name(Expression): #TODO check if this is right -we made this
     def __init__(self, name: str):
