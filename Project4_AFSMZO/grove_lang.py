@@ -126,11 +126,14 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
     def parse(tokens: list[str]) -> StringLiteral:
         #0. ensure there is exactly one token
         if len(tokens) != 1:
-            raise GroveParseError(f"Wrong number of tokens ({len(tokens)}) for StringLiteral")
-        #1. ensure that all chars in that token are letters
-        if not tokens[0].isalpha():
-            raise GroveParseError("Nubers can contain only digits")
-        return Number(int(tokens[0]))
+            raise GroveParseError(f"Wrong number of tokens ({len(tokens)}) for String")
+        #1. ensure that the string does not contain any quotes
+        if '"' in tokens[0]:
+            raise GroveParseError("String cannot contain quotes")
+        #2. ensure that the string does not contain any whitespace
+        if ' ' in tokens[0]:
+            raise GroveParseError("String cannot contain whitespace")
+        return StringLiteral(tokens[0])
 
 class Object(Expression):
 	# TODO: Implement node for "new" expression
