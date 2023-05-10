@@ -311,8 +311,41 @@ class Assignment(Expression):
 
 class Import(Expression):
     # TODO: Implement node for "import" statements
-    #TODO yeah i have no clue what to do here but he might
-    pass
+    def __init__(self, name: Name):
+        self.name = name
+    def eval(self) -> None:
+        try:
+            importlib.import_module(self.name.name)
+        except ModuleNotFoundError:
+            raise GroveEvalError(f"Module {self.name.name} not found")
+    def __eq__(self, other: Any):
+        return (
+            isinstance(other, Import)
+            and self.name == other.name
+        )
+    @staticmethod
+    def parse(tokens: list[str]) -> Import:
+        #0. ensure that the first token is "new"
+        if tokens[0] != "import":
+            raise GroveParseError("Object must begin with 'import'")
+        #1. ensure that the second token is a Name
+        try:
+            name: Name = Name.parse([tokens[1]])
+        except GroveParseError:
+            raise GroveParseError("Import must have a Name after 'import'")
+        #2. optionally check that every token after the second is a . followed by a Name
+        for i in range(2, tokens.__len__):
+            if tokens[i] != ".":
+                raise GroveParseError("Import must have a '.' after the Name")
+            # Check that all tokens have been consumed
+            if len(tokens) != i + 1:
+                raise GroveParseError("Unexpected tokens after import name")
+            try:
+                name: Name = Name.parse([tokens[i+1]])
+            except GroveParseError:
+                raise GroveParseError("Import must have a Name after the '.'")
+        # return the object
+        return Import(name)
 
 class Terminate(Expression):
 	# TODO: Implement node for "quit" and "exit" statements
