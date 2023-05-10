@@ -20,7 +20,7 @@ verbose = False
 #
 
 # Command Base Class (superclass of expressions and statements)
-class Command(object): #TODO check if this is right -we made this
+class Command(metaclass=ABCMeta): #TODO check if this is right -we made this
     @abstractmethod
     def __init__(self): pass
     @abstractmethod
@@ -45,11 +45,53 @@ class Command(object): #TODO check if this is right -we made this
 
 # Expression Base Class (superclass of Num, Name, StringLiteral, etc.)
 class Expression(Command):
-    pass
+    @abstractmethod
+    def __init__(self): pass
+    @abstractmethod
+    def eval(self) -> int: pass
+    @classmethod
+    def parse(cls, tokens: list[str]) -> Expression:
+        """Factory method for creating Expression subclasses from tokens"""
+        # get a list of all the subclasses of Expression
+        subclasses: list[type[Expression]] = cls.__subclasses__()
+        # try each subclass in turn to see if it matches the pattern
+        for subclass in subclasses:
+            try: 
+                return subclass.parse(tokens)
+            except GroveParseError as e:
+                if verbose: print(e)
+        # if none of the subclasses parsed successfully raise an exception
+        raise GroveParseError(f"Unrecognized Expression: {' '.join(tokens)}")
+    @staticmethod
+    def match_parens(tokens: list[str]) -> int:
+        """Searches tokens beginning with ( and returns index of matching )"""
+        # ensure tokens is such that a matching ) might exist
+        if len(tokens) < 2: raise GroveParseError("Expression too short")
+        if tokens[0] != '(': raise GroveParseError("No opening ( found")
+        # track the depth of nested ()
+        depth: int = 0
+        for i,token in enumerate(tokens):
+            # when a ( is found, increase the depth
+            if token == '(': depth += 1
+            # when a ) is found, decrease the depth
+            elif token == ')': depth -= 1
+            # if after a token the depth reaches 0, return that index
+            if depth == 0: return i
+        # if the depth never again reached 0 then parens do not match
+        raise GroveParseError("No closing ) found")
 
 # Statement Base Class (superclass of Assign, Terminate, and Import)
 class Statement(Command):
-    pass
+    @abstractmethod
+    def __init__(self): pass
+    @abstractmethod
+    def eval(self) -> None: pass
+    @staticmethod
+    def parse(tokens: list[str]) -> Statement:
+        """Factory method for creating Statement subclasses from tokens"""
+        # the only valid statement in our language is set so try that
+        stmt: Statement = Assignment.parse(tokens)
+        return stmt
 
 # -----------------------------------------------------------------------------
 # Implement each of the following parse tree nodes for the Grove language
@@ -92,11 +134,55 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
 
 class Object(Expression):
 	# TODO: Implement node for "new" expression
+    def __init__(self, obj: Expression):
+        self.obj = obj
+    def eval(self) -> Object:
+        return self.obj
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Object) and other.obj == self.obj
+    def parse(tokens: list[str]) -> Object:
+        #0. ensure that the first token is "new"
+        if tokens[0] != "new":
+            raise GroveParseError("Object must begin with 'new'")
+        #1. ensure there is at least two tokens
+        if len(tokens) < 2:
+            raise GroveParseError("Object must have at least two tokens")   
+    #TODO SEan see what parsing to do
     pass
     
 class Call(Expression):
-    # TODO: Implement node for "call" expression
-    pass
+    def __init__(self, call: Expression):
+        self.call = call #TODO SEAN CHECK IF THIS RIGHT, like do we need more variables?
+    def eval(self) -> Call:
+        return self.call
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Call) and other.call == self.call
+    def parse(tokens: list[str]) -> Call:
+        #A method call expression starts with the keyword call, followed by open parenthesis, a Name, another Name, zero or more Expressions (arguments), and closing parenthesis.
+        #0. ensure that the first token is "call"
+        if tokens[0] != "call":
+            raise GroveParseError("Call must begin with 'call'")
+        #1. ensure that the second token is "("
+        if tokens[1] != "(":
+            raise GroveParseError("Call must have '(' after 'call'")
+        #2. ensure that the third token is a Name
+        try:
+            name1: Name = Name.parse([tokens[2]])
+        except GroveParseError:
+            raise GroveParseError("Call must have a Name after '('")
+        #3. ensure that the fourth token is a Name
+        try:
+            name2: Name = Name.parse([tokens[3]])
+        except GroveParseError:
+            raise GroveParseError("Call must have a second Name after the first Name")
+        # make sure the rest of the tokens until the last one are Expressions
+        
+        #4. ensure that the last token is ")"
+        if tokens[tokens.__len__ - 1] != ")":
+            raise GroveParseError("Call must end with ')'")
+        #5. ensure that the tokens in between are Expressions
+        #TODO
+        
         
 class Addition(Expression):
     def __init__(self, first: Expression, second: Expression):
@@ -185,11 +271,34 @@ class Assignment(Expression):
         )
     @staticmethod
     def parse(tokens: list[str]) -> Assignment:
-        pass #TODO 
+        """Factory method for creating Set commands from tokens"""
+        # check to see if this string matches the pattern for set
+        # 0. ensure there are enough tokens for this to be a set statement
+        if len(tokens) < 4:
+            raise GroveParseError("Statement too short for Set")
+        # 1. ensure that the very first token is "set" otherwise throw Exception
+        if tokens[0] != 'set': 
+            raise GroveParseError("Set statements must begin with 'set'")
+        # 2. ensure that the next token is a valid Name
+        try:
+            name: Name = Name.parse([tokens[1]])
+        except GroveParseError:
+            raise GroveParseError("No name found for Set statement")
+        # 3. ensure that the next token is an '='
+        if tokens[2] != '=':
+            raise GroveParseError("Set statement requires '='")
+        # 4. ensure the remaining tokens represent an expression
+        try:
+            value: Expression = Expression.parse(tokens[3:])
+        except GroveParseError:
+            raise GroveParseError("No value found for Set statement")
+        # if this point is reached, this is a valid Set statement
+        return Assignment(name, value)
     
 
 class Import(Expression):
     # TODO: Implement node for "import" statements
+    #TODO yeah i have no clue what to do here but he might
     pass
 
 class Terminate(Expression):
