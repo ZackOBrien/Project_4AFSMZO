@@ -128,11 +128,13 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
         if len(tokens) != 1:
             raise GroveParseError(f"Wrong number of tokens ({len(tokens)}) for String")
         #1. ensure that the string does not contain any quotes
-        if '"' in tokens[0]:
+        if '"' in tokens[0][1:-1]:
             raise GroveParseError("String cannot contain quotes")
         #2. ensure that the string does not contain any whitespace
         if ' ' in tokens[0]:
             raise GroveParseError("String cannot contain whitespace")
+        if tokens[0][0] != '"' or tokens[0][-1] != '"':
+            raise GroveParseError("String must be wrapped in quotes")
         return StringLiteral(tokens[0])
 
 class Object(Expression):
