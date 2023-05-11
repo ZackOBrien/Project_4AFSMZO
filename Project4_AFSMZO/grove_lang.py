@@ -155,7 +155,7 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
             raise GroveParseError("String cannot contain whitespace")
         if tokens[0][0] != '"' or tokens[0][-1] != '"':
             raise GroveParseError("String must be wrapped in quotes")
-        return StringLiteral(tokens[0])
+        return StringLiteral(tokens[0][1:-1])
 
 class Object(Expression):
 	# TODO: Implement node for "new" expression
@@ -201,6 +201,9 @@ class Call(Expression):
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
     def parse(tokens: list[str]) -> Call:
         #A method call expression starts with the keyword call, followed by open parenthesis, a Name, another Name, zero or more Expressions (arguments), and closing parenthesis.
+        # ensure that there are at least 6 tokens
+        if len(tokens) < 6:
+            raise GroveParseError("Call must have at least 6 tokens")
         #0. ensure that the first token is "call"
         if tokens[0] != "call":
             raise GroveParseError("Call must begin with 'call'")
@@ -223,7 +226,16 @@ class Call(Expression):
         if tokens[tokens.__len__ - 1] != ")":
             raise GroveParseError("Call must end with ')'")
         #5. ensure that the tokens in between are Expressions
-        #TODO
+        expressions = []
+        for i in range(4, tokens.__len__ - 1):
+            try:
+                exp: Expression = Expression.parse([tokens[i]])
+                expressions.append(exp)
+            except GroveParseError:
+                raise GroveParseError("Call must have an Expression after the second Name")
+        # return the object
+        return Call(name1, name2, expressions)
+    
         
         
 class Addition(Expression):
@@ -306,7 +318,7 @@ class Assignment(Statement):
     def __init__(self, name: Name, value: Expression):
         self.name = name
         self.value = value
-    def eval(self) -> bool:
+    def eval(self) -> None:
         context[self.name.name] = self.value.eval()
     def __eq__(self, other: Any):
         return (
