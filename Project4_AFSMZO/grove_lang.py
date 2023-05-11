@@ -254,7 +254,6 @@ class Addition(Expression):
     def parse(tokens: list[str]) -> Addition:
         """Factory method for creating Add expressions from tokens"""
         s = ' '.join(tokens)
-        # check to see if this string matches the pattern for add
         # 0. ensure there are enough tokens for this to be a add expression
         if len(tokens) < 7:
             raise GroveParseError(f"Not enough tokens for Add in: {s}")

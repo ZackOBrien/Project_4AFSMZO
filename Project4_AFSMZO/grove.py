@@ -1,3 +1,6 @@
+#Question: Is your Grove interpreter using a static or dynamic type system? Briefly explain what aspects of the interpreter make it so.
+# Our Grove interpreter uses a dynamic type system.
+# Becuase for example we never say the variable type when we use "set", the intrepreter decides by the value we give it whether it is a String or Int
 from grove_parse import *
 from grove_lang import *
 
