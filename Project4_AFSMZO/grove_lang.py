@@ -200,8 +200,6 @@ class Call(Expression):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
     def parse(tokens: list[str]) -> Call:
-        #A method call expression starts with the keyword call, followed by open parenthesis, a Name, another Name, zero or more Expressions (arguments), and closing parenthesis.
-        # ensure that there are at least 6 tokens
         if len(tokens) < 6:
             raise GroveParseError("Call must have at least 6 tokens")
         #0. ensure that the first token is "call"
