@@ -89,9 +89,29 @@ class Statement(Command):
     @staticmethod
     def parse(tokens: list[str]) -> Statement:
         """Factory method for creating Statement subclasses from tokens"""
-        # the only valid statement in our language is set so try that
-        stmt: Statement = Assignment.parse(tokens)
-        return stmt
+        # try parsing an assignment statement
+        try:
+            stmt: Statement = Assignment.parse(tokens)
+            return stmt
+        except GroveParseError as e:
+            if verbose: print(e)
+        
+        # try parsing an import statement
+        try:
+            imp: Import  = Import.parse(tokens)
+            return imp
+        except GroveParseError as e:
+            if verbose: print(e)
+        
+        # try parsing a terminate statement
+        try:
+            term: Statement = Terminate.parse(tokens)
+            return term
+        except GroveParseError as e:
+            if verbose: print(e)
+        
+        raise GroveParseError(f"Unrecognized Statement: {' '.join(tokens)}")
+
 
 # -----------------------------------------------------------------------------
 # Implement each of the following parse tree nodes for the Grove language
@@ -257,8 +277,11 @@ class Name(Expression): #TODO check if this is right -we made this
     def eval(self) -> int:
         if self.name in context:
             return context[self.name]
+        elif self.name == "import":
+            raise GroveParseError(f"{self.name} is a reserved keyword")
         else:
             raise GroveEvalError(f"{self.name} is undefined")
+        
     def __eq__(self, other: Any) -> bool:
         return (isinstance(other, Name) and other.name == self.name)
     @staticmethod
@@ -275,7 +298,7 @@ class Name(Expression): #TODO check if this is right -we made this
         return Name(tokens[0])
 
 
-class Assignment(Expression):
+class Assignment(Statement):
     def __init__(self, name: Name, value: Expression):
         self.name = name
         self.value = value
@@ -314,7 +337,7 @@ class Assignment(Expression):
         return Assignment(name, value)
     
 
-class Import(Expression):
+class Import(Statement):
     # TODO: Implement node for "import" statements
     def __init__(self, name: Name):
         self.name = name
@@ -333,6 +356,9 @@ class Import(Expression):
         #0. ensure that the first token is "new"
         if tokens[0] != "import":
             raise GroveParseError("Object must begin with 'import'")
+        # ensure that there is a second token
+        if len(tokens) < 2:
+            raise GroveParseError("Import must have a Name after 'import'")
         #1. ensure that the second token is a Name
         try:
             name: Name = Name.parse([tokens[1]])
@@ -352,7 +378,7 @@ class Import(Expression):
         # return the object
         return Import(name)
 
-class Terminate(Expression):
+class Terminate(Statement):
     # TODO: Implement node for "quit" and "exit" statements
     def __init__(self, keyword: str):
         self.keyword = keyword
