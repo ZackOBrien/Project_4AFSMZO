@@ -217,9 +217,7 @@ class Call(Expression):
         try:
             name2: Name = Name.parse([tokens[3]])
         except GroveParseError:
-            raise GroveParseError("Call must have a second Name after the first Name")
-        # make sure the rest of the tokens until the last one are Expressions
-        
+            raise GroveParseError("Call must have a second Name after the first Name")        
         #4. ensure that the last token is ")"
         if tokens[tokens.__len__ - 1] != ")":
             raise GroveParseError("Call must end with ')'")
@@ -231,7 +229,6 @@ class Call(Expression):
                 expressions.append(exp)
             except GroveParseError:
                 raise GroveParseError("Call must have an Expression after the second Name")
-        # return the object
         return Call(name1, name2, expressions)
     
         
