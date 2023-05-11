@@ -169,12 +169,16 @@ class Object(Expression):
         return Object(name)
     
 class Call(Expression):
-    def __init__(self, call: Expression):
-        self.call = call #TODO SEAN CHECK IF THIS RIGHT, like do we need more variables?
+    def __init__(self, name1: Name, name2: Name, exps: list[Expression]): #test
+        self.name1 = name1
+        self.name2 = name2
+        #test
+        self.exps = exps
     def eval(self) -> Call:
-        return self.call
+        expressions = [exp.eval() for exp in self.exps]
+        return Call(self.name1, self.name2, expressions)
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Call) and other.call == self.call
+        return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
     def parse(tokens: list[str]) -> Call:
         #A method call expression starts with the keyword call, followed by open parenthesis, a Name, another Name, zero or more Expressions (arguments), and closing parenthesis.
         #0. ensure that the first token is "call"
