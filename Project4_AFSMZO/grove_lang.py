@@ -194,22 +194,21 @@ class Call(Expression):
         self.name2 = name2
         #test
         self.exps = exps
-    def eval(self) -> Call:
-        # expressions = [exp.eval() for exp in self.exps]
-        if not self.name1.name in context:
-            raise GroveEvalError(f"Name {self.name1.name} not found")
-        # Use introspection to check if name2 exists as a function in name1 object
+    def eval(self) -> Any:
         name1 = self.name1.eval()
         name2 = self.name2.name
-
+        if isinstance(name1, str) and hasattr(name1, name2):
+            func = getattr(name1, name2)
+            args = [exp.eval() for exp in self.exps]
+            return func(*args)
         try:
-            getattr(name1, name2)
-        except:
+            func = getattr(name1, name2)
+        except AttributeError:
             raise GroveEvalError(f"Function {name2} not found in object {name1}")
-        
-        expressions = [exp.eval() for exp in self.exps]
+        args = [exp.eval() for exp in self.exps]
+        return func(*args)
 
-        return Call(self.name1, self.name2, expressions)
+        #return Call(self.name1, self.name2, expressions) this is wrong.
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
     @staticmethod
