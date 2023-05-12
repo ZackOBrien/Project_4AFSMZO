@@ -200,8 +200,6 @@ class Call(Expression):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
     def parse(tokens: list[str]) -> Call:
-        #A method call expression starts with the keyword call, followed by open parenthesis, a Name, another Name, zero or more Expressions (arguments), and closing parenthesis.
-        # ensure that there are at least 6 tokens
         if len(tokens) < 6:
             raise GroveParseError("Call must have at least 6 tokens")
         #0. ensure that the first token is "call"
@@ -219,9 +217,7 @@ class Call(Expression):
         try:
             name2: Name = Name.parse([tokens[3]])
         except GroveParseError:
-            raise GroveParseError("Call must have a second Name after the first Name")
-        # make sure the rest of the tokens until the last one are Expressions
-        
+            raise GroveParseError("Call must have a second Name after the first Name")        
         #4. ensure that the last token is ")"
         if tokens[tokens.__len__ - 1] != ")":
             raise GroveParseError("Call must end with ')'")
@@ -233,7 +229,6 @@ class Call(Expression):
                 expressions.append(exp)
             except GroveParseError:
                 raise GroveParseError("Call must have an Expression after the second Name")
-        # return the object
         return Call(name1, name2, expressions)
     
         
@@ -259,7 +254,6 @@ class Addition(Expression):
     def parse(tokens: list[str]) -> Addition:
         """Factory method for creating Add expressions from tokens"""
         s = ' '.join(tokens)
-        # check to see if this string matches the pattern for add
         # 0. ensure there are enough tokens for this to be a add expression
         if len(tokens) < 7:
             raise GroveParseError(f"Not enough tokens for Add in: {s}")
