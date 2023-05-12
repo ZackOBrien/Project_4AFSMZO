@@ -195,7 +195,20 @@ class Call(Expression):
         #test
         self.exps = exps
     def eval(self) -> Call:
+        # expressions = [exp.eval() for exp in self.exps]
+        if not self.name1.name in context:
+            raise GroveEvalError(f"Name {self.name1.name} not found")
+        # Use introspection to check if name2 exists as a function in name1 object
+        name1 = self.name1.eval()
+        name2 = self.name2.name
+
+        try:
+            getattr(name1, name2)
+        except:
+            raise GroveEvalError(f"Function {name2} not found in object {name1}")
+        
         expressions = [exp.eval() for exp in self.exps]
+
         return Call(self.name1, self.name2, expressions)
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
@@ -204,8 +217,8 @@ class Call(Expression):
         #0. ensure that the first token is "call"
         if tokens[0] != "call":
             raise GroveParseError("Call must begin with 'call'")
-        if len(tokens) < 6:
-            raise GroveParseError("Call must have at least 6 tokens")
+        if len(tokens) < 5:
+            raise GroveParseError("Call must have at least 5 tokens")
         #1. ensure that the second token is "("
         if tokens[1] != "(":
             raise GroveParseError("Call must have '(' after 'call'")
@@ -288,6 +301,8 @@ class Name(Expression): #TODO check if this is right -we made this
     def eval(self) -> int:
         if self.name in context:
             return context[self.name]
+        else:
+            raise GroveEvalError(f"Name {self.name} not found")
         
         
     def __eq__(self, other: Any) -> bool:
