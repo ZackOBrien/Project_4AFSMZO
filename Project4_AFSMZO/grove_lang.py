@@ -175,7 +175,7 @@ class Object(Expression):
         except GroveParseError:
             raise GroveParseError("Object must have a Name after 'new'")
         #2. optionally check that every token after the second is a . followed by a Name
-        for i in range(2, tokens.__len__):
+        for i in range(2, len(tokens)):
             if tokens[i] != ".":
                 raise GroveParseError("Object must have a '.' after the Name")
             # Check that all tokens have been consumed
@@ -199,12 +199,13 @@ class Call(Expression):
         return Call(self.name1, self.name2, expressions)
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Call) and other.name1 == self.name1 and other.name2 == self.name2 and other.exps == self.exps
+    @staticmethod
     def parse(tokens: list[str]) -> Call:
-        if len(tokens) < 6:
-            raise GroveParseError("Call must have at least 6 tokens")
         #0. ensure that the first token is "call"
         if tokens[0] != "call":
             raise GroveParseError("Call must begin with 'call'")
+        if len(tokens) < 6:
+            raise GroveParseError("Call must have at least 6 tokens")
         #1. ensure that the second token is "("
         if tokens[1] != "(":
             raise GroveParseError("Call must have '(' after 'call'")
@@ -219,11 +220,11 @@ class Call(Expression):
         except GroveParseError:
             raise GroveParseError("Call must have a second Name after the first Name")        
         #4. ensure that the last token is ")"
-        if tokens[tokens.__len__ - 1] != ")":
+        if tokens[len(tokens) - 1] != ")":
             raise GroveParseError("Call must end with ')'")
         #5. ensure that the tokens in between are Expressions
         expressions = []
-        for i in range(4, tokens.__len__ - 1):
+        for i in range(4, len(tokens)- 1):
             try:
                 exp: Expression = Expression.parse([tokens[i]])
                 expressions.append(exp)
@@ -287,16 +288,15 @@ class Name(Expression): #TODO check if this is right -we made this
     def eval(self) -> int:
         if self.name in context:
             return context[self.name]
-        elif self.name == "import":
-            raise GroveParseError(f"{self.name} is a reserved keyword")
-        else:
-            raise GroveEvalError(f"{self.name} is undefined")
+        
         
     def __eq__(self, other: Any) -> bool:
         return (isinstance(other, Name) and other.name == self.name)
     @staticmethod
     def parse(tokens: list[str]) -> Name:
         # 0. ensure there is exactly one token
+        if tokens[0] == "import" or tokens[0] == "call" or tokens[0] == "set":
+            raise GroveParseError(f"{tokens[0]} is a reserved keyword")
         if len(tokens) != 1:
             raise GroveParseError("Wrong number of tokens for name")
         # 1. ensure that the first character is alphabetic or underscore
