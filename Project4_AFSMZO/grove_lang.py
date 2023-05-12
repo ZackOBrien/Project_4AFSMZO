@@ -132,7 +132,7 @@ class Number(Expression): #TODO check if this is right -we made this
         #1. ensure that all chars in that token are digits
         if not tokens[0].isdigit():
             raise GroveParseError("Nubers can contain only digits")
-        if not tokens[0] == "-":
+        if tokens[0][0] == "-":
             raise GroveParseError("Nubers have to be positive")
         return Number(int(tokens[0]))
 
