@@ -389,7 +389,7 @@ class Import(Statement):
         except GroveParseError:
             raise GroveParseError("Import must have a Name after 'import'")
         #2. optionally check that every token after the second is a . followed by a Name
-        for i in range(2, tokens.__len__):
+        for i in range(2, len(tokens)):
             if tokens[i] != ".":
                 raise GroveParseError("Import must have a '.' after the Name")
             # Check that all tokens have been consumed
