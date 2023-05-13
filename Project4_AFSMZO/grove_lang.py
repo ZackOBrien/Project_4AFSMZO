@@ -159,12 +159,15 @@ class StringLiteral(Expression): #TODO check if this is right -we made this
 
 class Object(Expression):
 	# TODO: Implement node for "new" expression
-    def __init__(self, obj: Expression):
-        self.obj = obj
+    #def __init__(self, obj: Expression):
+    #    self.obj = obj
+    def __init__(self, name: Name, names: list[Name]):
+        self.name = name
+        self.names = names
     def eval(self) -> Object:
         return self.obj
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Object) and other.obj == self.obj
+        return isinstance(other, Object) and other.name == self.name and other.names == self.names
     def parse(tokens: list[str]) -> Object:
         #0. ensure that the first token is "new"
         if tokens[0] != "new":
